@@ -3,27 +3,46 @@ package rush
 import (
 	"encoding/json"
 	"encoding/xml"
+	"io"
+	"net/http"
 )
 
 type Request struct {
-	body  []byte
+	http *http.Request
+	body *Body
+}
+
+type Body struct {
+	bytes []byte
 	error error
 }
 
-func (request *Request) Bytes() []byte {
+func (request *Request) Body() *Body {
+	if request.body.bytes != nil {
+		return &Body{bytes: request.body.bytes}
+	}
+	data, err := io.ReadAll(request.http.Body)
+	if err != nil {
+		return &Body{error: err}
+	}
+	request.body = &Body{bytes: data}
 	return request.body
 }
 
-func (request *Request) JSON(v interface{}) error {
-	if request.error != nil {
-		return request.error
-	}
-	return json.Unmarshal(request.body, v)
+func (body *Body) Bytes() []byte {
+	return body.bytes
 }
 
-func (request *Request) XML(v interface{}) error {
-	if request.error != nil {
-		return request.error
+func (body *Body) JSON(v interface{}) error {
+	if body.error != nil {
+		return body.error
 	}
-	return xml.Unmarshal(request.body, v)
+	return json.Unmarshal(body.Bytes(), v)
+}
+
+func (body *Body) XML(v interface{}) error {
+	if body.error != nil {
+		return body.error
+	}
+	return xml.Unmarshal(body.Bytes(), v)
 }

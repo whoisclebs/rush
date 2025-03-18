@@ -9,12 +9,17 @@ type Router struct {
 
 func (r *Router) handle(method, pattern string, handler HandlerFunc) {
 	r.mux.HandleFunc(pattern, func(w http.ResponseWriter, req *http.Request) {
-		ctx := &Context{writer: w, Request: req}
+		request := &Request{http: req}
+		response := &Response{writer: w}
+		ctx := &Context{
+			Request:  request,
+			Response: response,
+		}
 		if req.Method != method {
 			r.app.ErrorHandler(ctx, ErrorRush{Code: 405, Message: "Method Not Allowed"})
 			return
 		}
-		if err := handler(ctx); err != nil {
+		if err := handler(request, response); err != nil {
 			r.app.ErrorHandler(ctx, err)
 			return
 		}

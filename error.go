@@ -27,11 +27,11 @@ func (ctx *Context) NewError(status int, err string) error {
 func defaultErrorHandler(ctx *Context, err error) {
 	var apiErr ErrorRush
 	if errors.As(err, &apiErr) {
-		if jsonErr := ctx.Status(apiErr.Code).JSON(apiErr); jsonErr != nil {
+		if jsonErr := ctx.Response.Status(apiErr.Code).JSON(apiErr); jsonErr != nil {
 			log.Println(jsonErr)
 		}
 	} else {
-		if jsonErr := ctx.Status(http.StatusInternalServerError).JSON(ErrorRush{
+		if jsonErr := ctx.Response.Status(http.StatusInternalServerError).JSON(ErrorRush{
 			Code:    http.StatusInternalServerError,
 			Message: err.Error(),
 		}); jsonErr != nil {
