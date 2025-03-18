@@ -17,6 +17,10 @@ type Body struct {
 	error error
 }
 
+func (request *Request) Headers() map[string][]string {
+	return request.http.Header
+}
+
 func (request *Request) Body() *Body {
 	if request.body.bytes != nil {
 		return &Body{bytes: request.body.bytes}
